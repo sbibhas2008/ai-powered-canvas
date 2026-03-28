@@ -1,0 +1,7 @@
+packages:
+  - "ai-powered-canvas"
+  - "collab-server"
+
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
