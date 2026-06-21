@@ -9,13 +9,22 @@ import { translateExcalidrawToCanvas } from "../mapper/adapters/excalidrawToCanv
 
 const LOCAL_ORIGIN = "local";
 
-function reconcile<T extends { id: string }>(map: Y.Map<T>, items: T[]): void {
-  const currentIds = new Set(items.map((item) => item.id));
+/**
+ * Diff-and-patch a Y.Map against an incoming array of domain items.
+ * Only mutates entries that are new, changed, or removed — preventing
+ * Yjs from broadcasting full delete/recreate events to peers.
+ */
+function reconcile<T extends { id: string }>(
+  map: Y.Map<T>,
+  elements: T[],
+): void {
+  const currentIds = new Set(elements.map((el) => el.id));
 
-  for (const item of items) {
-    const existing = map.get(item.id);
-    if (!existing || !deepEqual(existing, item)) {
-      map.set(item.id, structuredClone(item));
+  for (const el of elements) {
+    const existing = map.get(el.id);
+
+    if (!existing || !deepEqual(existing, el)) {
+      map.set(el.id, structuredClone(el));
     }
   }
 
