@@ -3,13 +3,6 @@
 // Excalidraw is just a renderer. The AI generates these types directly.
 // Yjs syncs these types across peers.
 
-export enum NodeType {
-  Rectangle = "rectangle",
-  Ellipse = "ellipse",
-  Diamond = "diamond",
-  Text = "text",
-}
-
 export interface Position {
   x: number;
   y: number;
@@ -20,78 +13,61 @@ export interface Size {
   height: number;
 }
 
-export interface Style {
+export type NodeType = "rectangle" | "ellipse" | "diamond" | "text";
+export type StrokeStyle = "solid" | "dashed" | "dotted";
+
+export interface BaseStyle {
   backgroundColor?: string;
   strokeColor?: string;
   strokeWidth?: number;
-  strokeStyle?: string; // "solid" | "dashed" | "dotted"
-  opacity?: number;
+  strokeStyle?: StrokeStyle;
+  opacity?: number; // 0.0 to 1.0
   fontSize?: number;
   fontFamily?: string;
-  roughness?: number; // 0=architect, 1=artist, 2=cartoonist
-  roundness?: { type: number } | null;
-  fillStyle?: string; // "solid" | "hachure" | "cross-hatch" etc.
 }
 
-export interface Node {
+/**
+ * The Escape Hatch: Renderer-specific data lives here.
+ * The core domain logic and AI tools do not need to understand this data.
+ */
+export interface RenderMeta {
+  excalidraw?: {
+    roughness?: number; // 0=architect, 1=artist, 2=cartoonist
+    fillStyle?: "solid" | "hachure" | "cross-hatch";
+    roundness?: { type: number } | null;
+  };
+}
+
+export interface BaseElement {
   id: string;
+  style: BaseStyle;
+  renderMeta?: RenderMeta;
+}
+
+export interface Node extends BaseElement {
   type: NodeType;
   position: Position;
   size: Size;
-  label: string;
-  style: Style;
+  label?: string;
 }
 
-export interface Edge {
-  id: string;
+export interface Edge extends BaseElement {
+  type: "edge";
   from: string; // source node ID
   to: string; // target node ID
-  label: string;
-  style: Style;
-  // Arrow geometry — preserved from Excalidraw for lossless roundtrip.
-  // When AI-generated, these can be omitted and will be auto-computed from node positions.
+  label?: string;
   position?: Position;
   points?: [number, number][];
 }
 
-export interface Canvas {
-  nodes: Node[];
-  edges: Edge[];
+/**
+ * Represents a complete snapshot of the canvas.
+ * Uses Records (Maps) instead of Arrays to mirror the Y.Map
+ * CRDT architecture, guaranteeing O(1) lookups and conflict-free updates.
+ */
+export interface CanvasState {
+  nodes: Record<string, Node>;
+  edges: Record<string, Edge>;
 }
 
-// ─── Defaults ──────────────────────────────────────────────────────
-
-export const DEFAULT_NODE_SIZE: Size = { width: 200, height: 100 };
-
-export const DEFAULT_STYLE: Style = {
-  backgroundColor: "transparent",
-  strokeColor: "#1e1e1e",
-  strokeWidth: 2,
-  opacity: 100,
-  fontSize: 20,
-  fontFamily: "Virgil",
-  roughness: 1,
-  roundness: { type: 3 },
-  fillStyle: "solid",
-};
-
-export function createNode(partial: Partial<Node> & { id: string }): Node {
-  return {
-    type: NodeType.Rectangle,
-    position: { x: 0, y: 0 },
-    size: { ...DEFAULT_NODE_SIZE },
-    label: "",
-    style: { ...DEFAULT_STYLE },
-    ...partial,
-  };
-}
-
-export function createEdge(
-  partial: Partial<Edge> & { id: string; from: string; to: string },
-): Edge {
-  return {
-    label: "",
-    style: { ...DEFAULT_STYLE },
-    ...partial,
-  };
-}
+export type CanvasElement = Node | Edge;

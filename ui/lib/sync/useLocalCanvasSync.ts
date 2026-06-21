@@ -3,9 +3,9 @@
 import { useCallback } from "react";
 import * as Y from "yjs";
 import type { Node, Edge } from "@/lib/domain/types";
-import { uiElementsToCanvas } from "@/lib/mapper/uiElementsToCanvas";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import { deepEqual } from "@/utils/object";
+import { translateExcalidrawToCanvas } from "../mapper/adapters/excalidrawToCanvas";
 
 const LOCAL_ORIGIN = "local";
 
@@ -45,13 +45,13 @@ export function useLocalCanvasSync({
         return;
       }
 
-      const canvas = uiElementsToCanvas(elements);
+      const canvas = translateExcalidrawToCanvas(elements);
       const nodesMap = doc.getMap<Node>("nodes");
       const edgesMap = doc.getMap<Edge>("edges");
 
       doc.transact(() => {
-        reconcile(nodesMap, canvas.nodes);
-        reconcile(edgesMap, canvas.edges);
+        reconcile(nodesMap, Object.values(canvas.nodes));
+        reconcile(edgesMap, Object.values(canvas.edges));
       }, LOCAL_ORIGIN);
     },
     [docRef, pendingRemoteUpdatesRef],

@@ -1,28 +1,18 @@
 import * as Y from "yjs";
-import type { Canvas, Node, Edge } from "@/lib/domain/types";
-import { canvasToUiElements } from "@/lib/mapper/canvasToUiElements";
+import type { Node, Edge, CanvasState } from "@/lib/domain/types";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
-
-export function readSharedCanvas(
-  nodesMap: Y.Map<Node>,
-  edgesMap: Y.Map<Edge>,
-): Canvas {
-  const nodes: Node[] = [];
-  nodesMap.forEach((v) => nodes.push(v));
-
-  const edges: Edge[] = [];
-
-  edgesMap.forEach((v) => edges.push(v));
-
-  return { nodes, edges };
-}
+import { translateCanvasToExcalidraw } from "../mapper/adapters/canvasToExcalidraw";
 
 export function renderSharedCanvas(
   api: ExcalidrawImperativeAPI,
   nodesMap: Y.Map<Node>,
   edgesMap: Y.Map<Edge>,
 ): void {
+  const state: CanvasState = {
+    nodes: Object.fromEntries(nodesMap.entries()),
+    edges: Object.fromEntries(edgesMap.entries()),
+  };
   api.updateScene({
-    elements: canvasToUiElements(readSharedCanvas(nodesMap, edgesMap)),
+    elements: translateCanvasToExcalidraw(state),
   });
 }

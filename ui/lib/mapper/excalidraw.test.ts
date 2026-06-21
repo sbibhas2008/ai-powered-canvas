@@ -4,9 +4,9 @@
  *
  * Run: npx tsx lib/mapper/excalidraw.test.ts
  */
-
-import { canvasToUiElements } from "./canvasToUiElements";
-import { uiElementsToCanvas } from "./uiElementsToCanvas";
+import { translateCanvasToExcalidraw } from "./adapters/canvasToExcalidraw";
+import { translateExcalidrawToCanvas } from "./adapters/excalidrawToCanvas";
+import type { CanvasState } from "@/lib/domain/types";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 
 // ── Simulate realistic Excalidraw output ──────────────────────────
@@ -58,10 +58,10 @@ const rect1 = fakeElement({
 const rect1Label = fakeElement({
   id: "rect1-label",
   type: "text",
-  x: 150,
-  y: 135,
-  width: 100,
-  height: 25,
+  x: 200, // center of rect1 (100 + 200/2)
+  y: 150, // center of rect1 (100 + 100/2)
+  width: 200,
+  height: 20,
   text: "Box A",
   originalText: "Box A",
   fontSize: 20,
@@ -89,10 +89,10 @@ const rect2 = fakeElement({
 const rect2Label = fakeElement({
   id: "rect2-label",
   type: "text",
-  x: 550,
-  y: 135,
-  width: 100,
-  height: 25,
+  x: 600, // center of rect2 (500 + 200/2)
+  y: 150, // center of rect2 (100 + 100/2)
+  width: 200,
+  height: 20,
   text: "Box B",
   originalText: "Box B",
   fontSize: 20,
@@ -148,13 +148,13 @@ for (const el of originalElements) {
   );
 }
 
-const domain = uiElementsToCanvas(originalElements);
+const domain: CanvasState = translateExcalidrawToCanvas(originalElements);
 
 console.log("\n=== Domain Model ===");
 console.log("Nodes:", JSON.stringify(domain.nodes, null, 2));
 console.log("Edges:", JSON.stringify(domain.edges, null, 2));
 
-const reconstructed = canvasToUiElements(domain);
+const reconstructed = translateCanvasToExcalidraw(domain);
 
 console.log("\n=== Reconstructed Excalidraw Elements ===");
 for (const el of reconstructed) {
