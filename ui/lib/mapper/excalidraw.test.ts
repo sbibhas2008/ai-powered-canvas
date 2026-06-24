@@ -1,9 +1,4 @@
-/**
- * Roundtrip test: simulate what Excalidraw produces for an arrow between two
- * rectangles, convert to domain, convert back, and compare critical properties.
- *
- * Run: npx tsx lib/mapper/excalidraw.test.ts
- */
+import { describe, it, expect } from "vitest";
 import { translateCanvasToExcalidraw } from "./adapters/canvasToExcalidraw";
 import { translateExcalidrawToCanvas } from "./adapters/excalidrawToCanvas";
 import type { CanvasState } from "@/lib/domain/types";
@@ -58,8 +53,8 @@ const rect1 = fakeElement({
 const rect1Label = fakeElement({
   id: "rect1-label",
   type: "text",
-  x: 200, // center of rect1 (100 + 200/2)
-  y: 150, // center of rect1 (100 + 100/2)
+  x: 200,
+  y: 150,
   width: 200,
   height: 20,
   text: "Box A",
@@ -89,8 +84,8 @@ const rect2 = fakeElement({
 const rect2Label = fakeElement({
   id: "rect2-label",
   type: "text",
-  x: 600, // center of rect2 (500 + 200/2)
-  y: 150, // center of rect2 (100 + 100/2)
+  x: 600,
+  y: 150,
   width: 200,
   height: 20,
   text: "Box B",
@@ -104,12 +99,11 @@ const rect2Label = fakeElement({
   lineHeight: 1.25,
 });
 
-// Arrow drawn from right edge of rect1 to left edge of rect2
 const arrow1 = fakeElement({
   id: "arrow1",
   type: "arrow",
-  x: 300, // right edge of rect1
-  y: 150, // vertical center of rect1
+  x: 300,
+  y: 150,
   width: 200,
   height: 0,
   points: [
@@ -136,96 +130,65 @@ const arrow1 = fakeElement({
 
 const originalElements = [rect1, rect1Label, rect2, rect2Label, arrow1];
 
-// ── Roundtrip ─────────────────────────────────────────────────────
+// ── Tests ─────────────────────────────────────────────────────────
 
-console.log("=== Original Excalidraw Elements ===");
-for (const el of originalElements) {
-  const r = el as unknown as Record<string, unknown>;
-  console.log(
-    `  ${r.id}: type=${r.type}, x=${r.x}, y=${r.y}, w=${r.width}, h=${r.height}`,
-    r.type === "arrow" ? `points=${JSON.stringify(r.points)}` : "",
-    r.type === "text" ? `containerId=${r.containerId}` : "",
-  );
-}
+describe("Excalidraw roundtrip mapper", () => {
+  const domain: CanvasState = translateExcalidrawToCanvas(originalElements);
+  const reconstructed = translateCanvasToExcalidraw(domain);
 
-const domain: CanvasState = translateExcalidrawToCanvas(originalElements);
-
-console.log("\n=== Domain Model ===");
-console.log("Nodes:", JSON.stringify(domain.nodes, null, 2));
-console.log("Edges:", JSON.stringify(domain.edges, null, 2));
-
-const reconstructed = translateCanvasToExcalidraw(domain);
-
-console.log("\n=== Reconstructed Excalidraw Elements ===");
-for (const el of reconstructed) {
-  const r = el as unknown as Record<string, unknown>;
-  console.log(
-    `  ${r.id}: type=${r.type}, x=${r.x}, y=${r.y}, w=${r.width}, h=${r.height}`,
-    r.type === "arrow"
-      ? `points=${JSON.stringify(r.points)} startBinding=${JSON.stringify(r.startBinding)} endBinding=${JSON.stringify(r.endBinding)}`
-      : "",
-    r.type === "text" ? `containerId=${r.containerId} text="${r.text}"` : "",
-  );
-}
-
-// ── Compare critical properties ───────────────────────────────────
-
-console.log("\n=== Comparison ===");
-let pass = true;
-
-for (const orig of originalElements) {
-  const origR = orig as unknown as Record<string, unknown>;
-  const recon = reconstructed.find(
-    (e) => (e as unknown as Record<string, unknown>).id === origR.id,
-  );
-
-  if (!recon) {
-    console.log(`FAIL: ${origR.id} missing from reconstructed`);
-    pass = false;
-    continue;
-  }
-
-  const reconR = recon as unknown as Record<string, unknown>;
-  const checks = ["x", "y", "width", "height", "type"];
-  for (const key of checks) {
-    if (origR[key] !== reconR[key]) {
-      console.log(
-        `FAIL: ${origR.id}.${key}: original=${origR[key]}, reconstructed=${reconR[key]}`,
+  it("preserves all element IDs", () => {
+    for (const orig of originalElements) {
+      const r = orig as unknown as Record<string, unknown>;
+      const recon = reconstructed.find(
+        (e) => (e as unknown as Record<string, unknown>).id === r.id,
       );
-      pass = false;
+      expect(recon).toBeDefined();
     }
-  }
+  });
 
-  if (origR.type === "arrow") {
-    const origPoints = JSON.stringify(origR.points);
-    const reconPoints = JSON.stringify(reconR.points);
-    if (origPoints !== reconPoints) {
-      console.log(
-        `FAIL: ${origR.id}.points: original=${origPoints}, reconstructed=${reconPoints}`,
-      );
-      pass = false;
+  it("preserves position and size for all elements", () => {
+    for (const orig of originalElements) {
+      const origR = orig as unknown as Record<string, unknown>;
+      const recon = reconstructed.find(
+        (e) => (e as unknown as Record<string, unknown>).id === origR.id,
+      ) as unknown as Record<string, unknown>;
+
+      expect(recon.x).toBe(origR.x);
+      expect(recon.y).toBe(origR.y);
+      expect(recon.width).toBe(origR.width);
+      expect(recon.height).toBe(origR.height);
+      expect(recon.type).toBe(origR.type);
     }
+  });
 
-    // Check bindings
-    const origStart = origR.startBinding as Record<string, unknown> | null;
-    const reconStart = reconR.startBinding as Record<string, unknown> | null;
-    if (origStart?.elementId !== reconStart?.elementId) {
-      console.log(
-        `FAIL: ${origR.id}.startBinding.elementId: original=${origStart?.elementId}, reconstructed=${reconStart?.elementId}`,
-      );
-      pass = false;
-    }
+  it("preserves arrow points", () => {
+    const origR = arrow1 as unknown as Record<string, unknown>;
+    const recon = reconstructed.find(
+      (e) => (e as unknown as Record<string, unknown>).id === "arrow1",
+    ) as unknown as Record<string, unknown>;
 
-    const origEnd = origR.endBinding as Record<string, unknown> | null;
-    const reconEnd = reconR.endBinding as Record<string, unknown> | null;
-    if (origEnd?.elementId !== reconEnd?.elementId) {
-      console.log(
-        `FAIL: ${origR.id}.endBinding.elementId: original=${origEnd?.elementId}, reconstructed=${reconEnd?.elementId}`,
-      );
-      pass = false;
-    }
-  }
-}
+    expect(JSON.stringify(recon.points)).toBe(JSON.stringify(origR.points));
+  });
 
-console.log(pass ? "\nALL CHECKS PASSED" : "\nSOME CHECKS FAILED");
-process.exit(pass ? 0 : 1);
+  it("preserves arrow bindings", () => {
+    const recon = reconstructed.find(
+      (e) => (e as unknown as Record<string, unknown>).id === "arrow1",
+    ) as unknown as Record<string, unknown>;
+
+    expect((recon.startBinding as Record<string, unknown>)?.elementId).toBe(
+      "rect1",
+    );
+    expect((recon.endBinding as Record<string, unknown>)?.elementId).toBe(
+      "rect2",
+    );
+  });
+
+  it("preserves text container bindings", () => {
+    const reconLabel = reconstructed.find(
+      (e) => (e as unknown as Record<string, unknown>).id === "rect1-label",
+    ) as unknown as Record<string, unknown>;
+
+    expect(reconLabel.containerId).toBe("rect1");
+    expect(reconLabel.text).toBe("Box A");
+  });
+});
