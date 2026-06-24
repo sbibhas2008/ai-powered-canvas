@@ -1,5 +1,32 @@
 # AI Powered Canvas
 
+## Getting Started
+
+### Prerequisites
+
+- Node.js v18+
+- pnpm
+
+### Install & Run
+
+```bash
+pnpm install
+pnpm dev
+```
+
+This starts both servers concurrently:
+- **Next.js UI** — http://localhost:3000
+- **Hocuspocus WebSocket** — ws://localhost:1234
+
+Open two browser tabs to see real-time sync in action.
+
+### Individual servers
+
+```bash
+pnpm dev:ui    # Next.js only
+pnpm dev:ws    # Hocuspocus only
+```
+
 ## Architecture
 
 ```mermaid
