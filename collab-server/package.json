@@ -6,16 +6,15 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "y-websocket": "^2.1.0",
-    "yjs": "^13.6.0",
-    "ws": "^8.18.0"
+    "@hocuspocus/server": "^4.0.0",
+    "yjs": "^13.6.0"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/ws": "^8",
     "tsx": "^4",
     "typescript": "^5"
   }

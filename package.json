@@ -6,7 +6,9 @@
     "dev:ui": "pnpm --filter ai-powered-canvas dev",
     "dev:ws": "pnpm --filter collab-server dev",
     "build": "pnpm --filter ai-powered-canvas build && pnpm --filter collab-server build",
-    "lint": "pnpm --filter ai-powered-canvas lint"
+    "lint": "pnpm --filter ai-powered-canvas lint",
+    "typecheck": "pnpm --filter ai-powered-canvas typecheck && pnpm --filter collab-server typecheck",
+    "test": "pnpm --filter ai-powered-canvas test"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
