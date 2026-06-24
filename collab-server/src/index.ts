@@ -1,15 +1,28 @@
-import { WebSocketServer } from "ws";
-import { setupWSConnection } from "y-websocket/bin/utils";
-import * as Y from "yjs";
+import { Server } from "@hocuspocus/server";
 
 const PORT = Number(process.env.PORT) || 1234;
 
-const wss = new WebSocketServer({ port: PORT });
+const server = new Server({
+  port: PORT,
 
-wss.on("connection", (ws, req) => {
-  setupWSConnection(ws, req);
+  async onConnect({ documentName }) {
+    console.log(`[collab-server] Client connected: ${documentName}`);
+  },
+
+  async onLoadDocument({ documentName }) {
+    console.log(`[collab-server] Loading document: ${documentName}`);
+    return null;
+  },
+
+  async onStoreDocument({ documentName }) {
+    console.log(`[collab-server] Storing document: ${documentName}`);
+  },
+
+  async onDisconnect({ documentName }) {
+    console.log(`[collab-server] Client disconnected: ${documentName}`);
+  },
 });
 
-wss.on("listening", () => {
-  console.log(`[collab-server] y-websocket running on ws://localhost:${PORT}`);
-});
+server.listen();
+
+console.log(`[collab-server] Hocuspocus running on ws://localhost:${PORT}`);
