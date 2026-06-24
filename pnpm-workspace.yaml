@@ -1,5 +1,5 @@
 packages:
-  - "ai-powered-canvas"
+  - "ui"
   - "collab-server"
 
 ignoredBuiltDependencies:

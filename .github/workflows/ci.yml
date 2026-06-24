@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        check:
+          - name: typecheck
+            run: pnpm typecheck
+          - name: lint
+            run: pnpm lint
+          - name: build
+            run: pnpm build
+          - name: test
+            run: pnpm test
+    name: ${{ matrix.check.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: ${{ matrix.check.run }}
