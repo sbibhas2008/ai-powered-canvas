@@ -1,6 +1,7 @@
 {
   "name": "ai-powered-canvas-monorepo",
   "private": true,
+  "packageManager": "pnpm@10.12.1",
   "scripts": {
     "dev": "concurrently -n ui,ws -c cyan,magenta \"pnpm --filter ai-powered-canvas dev\" \"pnpm --filter collab-server dev\"",
     "dev:ui": "pnpm --filter ai-powered-canvas dev",
