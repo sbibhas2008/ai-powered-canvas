@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["Collab", "Excalidraw"]
+  "cSpell.words": ["Collab", "Excalidraw"],
+  "json.schemaDownload.trustedDomains": {
+    "https://ui.shadcn.com/": true
+  }
 }

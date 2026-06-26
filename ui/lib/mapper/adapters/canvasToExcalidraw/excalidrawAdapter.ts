@@ -16,9 +16,7 @@ function collectBoundElements(
   allEdges: Record<string, Edge>,
 ): { id: string; type: "text" | "arrow" }[] {
   return [
-    ...(node.label
-      ? [{ id: `${node.id}-label`, type: "text" as const }]
-      : []),
+    ...(node.label ? [{ id: `${node.id}-label`, type: "text" as const }] : []),
     ...Object.values(allEdges)
       .filter((e) => e.from === node.id || e.to === node.id)
       .map((e) => ({ id: e.id, type: "arrow" as const })),
