@@ -9,7 +9,9 @@
     "build": "pnpm --filter ai-powered-canvas build && pnpm --filter collab-server build",
     "lint": "pnpm --filter ai-powered-canvas lint",
     "typecheck": "pnpm --filter ai-powered-canvas typecheck && pnpm --filter collab-server typecheck",
-    "test": "pnpm --filter ai-powered-canvas test"
+    "test": "pnpm --filter ai-powered-canvas test",
+    "storybook": "pnpm --filter ai-powered-canvas storybook",
+    "build-storybook": "pnpm --filter ai-powered-canvas build-storybook"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
