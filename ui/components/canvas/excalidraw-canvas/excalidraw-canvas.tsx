@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import "@excalidraw/excalidraw/index.css";
 
 export const ExcalidrawCanvas = dynamic(
   async () => {

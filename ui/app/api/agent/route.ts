@@ -1,42 +1,61 @@
-import { streamText, UIMessage, convertToModelMessages } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { isRateLimited } from "@/lib/agent/rateLimit";
+import { streamAgentResponse } from "@/lib/agent/stream";
 import { getIp, parseJsonBody } from "@/lib/api/request";
-import { rateLimited, serverError } from "@/lib/api/errors";
+import { badRequest, rateLimited, serverError } from "@/lib/api/errors";
+import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { createUIMessageStreamResponse } from "ai";
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_API_KEY,
-});
+interface UIMessage {
+  role: "user" | "assistant";
+  parts?: Array<{ type: string; text?: string }>;
+  content?: string;
+}
 
-const SYSTEM_PROMPT = `You are a helpful AI assistant for a collaborative canvas application.
-You help users with their questions and tasks. Keep responses concise and helpful.`;
+function toLangChainMessages(messages: UIMessage[]) {
+  return messages.map((m) => {
+    const text =
+      m.parts
+        ?.filter((p) => p.type === "text" && p.text)
+        .map((p) => p.text!)
+        .join("") ?? m.content ?? "";
+    return m.role === "user" ? new HumanMessage(text) : new AIMessage(text);
+  });
+}
+
+function validateMessages(body: unknown): UIMessage[] | null {
+  const { messages } = body as { messages: UIMessage[] };
+  if (!messages || !Array.isArray(messages) || messages.length === 0)
+    return null;
+  return messages;
+}
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
   try {
     const ip = getIp(request);
-    if (isRateLimited(ip)) return rateLimited();
+    console.log(`[api] POST /api/agent - ip=${ip}`);
 
-    const body = await parseJsonBody(request);
-    const { messages } = body as { messages: UIMessage[] };
-
-    if (!messages || !Array.isArray(messages)) {
-      return Response.json(
-        { error: "messages array is required" },
-        { status: 400 }
-      );
+    if (isRateLimited(ip)) {
+      console.log(`[api] rate limited: ip=${ip}`);
+      return rateLimited();
     }
 
-    const modelMessages = await convertToModelMessages(messages);
+    const body = await parseJsonBody(request);
+    const messages = validateMessages(body);
+    if (!messages) {
+      console.log(`[api] validation failed: invalid messages`);
+      return badRequest("messages array is required");
+    }
 
-    const result = streamText({
-      model: google("gemini-2.5-flash"),
-      system: SYSTEM_PROMPT,
-      messages: modelMessages,
-    });
+    console.log(`[api] valid request: ${messages.length} messages`);
 
-    return result.toUIMessageStreamResponse();
+    const stream = await streamAgentResponse(toLangChainMessages(messages));
+    const duration = Date.now() - startTime;
+    console.log(`[api] stream created in ${duration}ms`);
+    return createUIMessageStreamResponse({ stream });
   } catch (error) {
-    console.error("[/api/agent] Error:", error);
+    const duration = Date.now() - startTime;
+    console.error(`[api] error after ${duration}ms:`, error);
     return serverError();
   }
 }
