@@ -1,9 +1,11 @@
-import { isRateLimited } from "@/lib/agent/rateLimit";
+import { RateLimitService } from "@/lib/agent/rateLimit";
 import { streamAgentResponse } from "@/lib/agent/stream";
 import { getIp, parseJsonBody } from "@/lib/api/request";
 import { badRequest, rateLimited, serverError } from "@/lib/api/errors";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { createUIMessageStreamResponse } from "ai";
+
+const rateLimiter = new RateLimitService({ cooldownMs: 5_000 });
 
 interface UIMessage {
   role: "user" | "assistant";
@@ -35,7 +37,7 @@ export async function POST(request: Request) {
     const ip = getIp(request);
     console.log(`[api] POST /api/agent - ip=${ip}`);
 
-    if (isRateLimited(ip)) {
+    if (rateLimiter.isRateLimited(ip)) {
       console.log(`[api] rate limited: ip=${ip}`);
       return rateLimited();
     }

@@ -42,6 +42,8 @@ export function createEdge(params: {
   to: string;
   id?: string;
   label?: string;
+  position?: Position;
+  points?: [number, number][];
   style?: Partial<BaseStyle>;
   renderMeta?: RenderMeta;
 }): Edge {
@@ -51,6 +53,8 @@ export function createEdge(params: {
     from: params.from,
     to: params.to,
     label: params.label,
+    position: params.position,
+    points: params.points,
     style: { ...DEFAULT_BASE_STYLE, ...params.style },
     renderMeta: params.renderMeta ?? DEFAULT_RENDER_META,
   };
