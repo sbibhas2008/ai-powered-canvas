@@ -35,10 +35,8 @@ export async function POST(request: Request) {
   const startTime = Date.now();
   try {
     const ip = getIp(request);
-    console.log(`[api] POST /api/agent - ip=${ip}`);
 
     if (rateLimiter.isRateLimited(ip)) {
-      console.log(`[api] rate limited: ip=${ip}`);
       return rateLimited();
     }
 
