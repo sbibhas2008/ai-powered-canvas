@@ -8,6 +8,11 @@ import {
   createEdgeLabel,
 } from "./factories";
 import type { ArrowGeometry } from "./types";
+import {
+  rectangleIntersection,
+  ellipseIntersection,
+  nodeCenter,
+} from "../../geometry";
 
 // --- Shape helpers ---
 
@@ -23,9 +28,20 @@ function collectBoundElements(
   ];
 }
 
+function borderPoint(
+  node: Node,
+  target: { x: number; y: number },
+): { x: number; y: number } {
+  const center = nodeCenter(node.position, node.size);
+  if (node.type === "ellipse") {
+    return ellipseIntersection(node.position, node.size, center, target);
+  }
+  return rectangleIntersection(node.position, node.size, center, target);
+}
+
 // --- Edge helpers ---
 
-// Returns the arrow's position and points, preferring explicit geometry over auto-calculated center-to-center.
+// Returns the arrow's position and points, preferring explicit geometry over auto-calculated edge-to-edge.
 function resolveArrowGeometry(
   edge: Edge,
   fromNode: Node | undefined,
@@ -37,17 +53,18 @@ function resolveArrowGeometry(
 
   if (!fromNode || !toNode) return null;
 
-  const startX = fromNode.position.x + fromNode.size.width / 2;
-  const startY = fromNode.position.y + fromNode.size.height / 2;
-  const endX = toNode.position.x + toNode.size.width / 2;
-  const endY = toNode.position.y + toNode.size.height / 2;
+  const fromCenter = nodeCenter(fromNode.position, fromNode.size);
+  const toCenter = nodeCenter(toNode.position, toNode.size);
+
+  const start = borderPoint(fromNode, toCenter);
+  const end = borderPoint(toNode, fromCenter);
 
   return {
-    x: startX,
-    y: startY,
+    x: start.x,
+    y: start.y,
     points: [
       [0, 0],
-      [endX - startX, endY - startY],
+      [end.x - start.x, end.y - start.y],
     ],
   };
 }

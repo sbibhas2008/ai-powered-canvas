@@ -146,8 +146,11 @@ describe("Excalidraw roundtrip mapper", () => {
     }
   });
 
-  it("preserves position and size for all elements", () => {
-    for (const orig of originalElements) {
+  it("preserves position and size for non-text-bound elements", () => {
+    const nonLabelElements = originalElements.filter(
+      (el) => (el as unknown as Record<string, unknown>).containerId == null,
+    );
+    for (const orig of nonLabelElements) {
       const origR = orig as unknown as Record<string, unknown>;
       const recon = reconstructed.find(
         (e) => (e as unknown as Record<string, unknown>).id === origR.id,
@@ -159,6 +162,17 @@ describe("Excalidraw roundtrip mapper", () => {
       expect(recon.height).toBe(origR.height);
       expect(recon.type).toBe(origR.type);
     }
+  });
+
+  it("bound text positions are derived from container, not preserved from Excalidraw", () => {
+    const reconLabel = reconstructed.find(
+      (e) => (e as unknown as Record<string, unknown>).id === "rect1-label",
+    ) as unknown as Record<string, unknown>;
+
+    // x stays at container origin; y is vertically centered within container
+    expect(reconLabel.x).toBe(rect1.x);
+    expect(reconLabel.y).toBe(rect1.y + (rect1.height - 20) / 2);
+    expect(reconLabel.containerId).toBe("rect1");
   });
 
   it("preserves arrow points", () => {

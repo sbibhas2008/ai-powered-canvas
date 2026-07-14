@@ -8,7 +8,7 @@ export const DEFAULT_NODE_SIZE: Size = {
 /**
  * Universal styling defaults that any canvas (or AI) can understand.
  */
-export const DEFAULT_BASE_STYLE: BaseStyle = {
+export const DEFAULT_BASE_STYLE: Required<BaseStyle> = {
   backgroundColor: "transparent",
   strokeColor: "#1e1e1e",
   strokeWidth: 2,

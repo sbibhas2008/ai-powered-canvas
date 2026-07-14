@@ -10,10 +10,12 @@
     "lint": "pnpm --filter ai-powered-canvas lint",
     "typecheck": "pnpm --filter ai-powered-canvas typecheck && pnpm --filter collab-server typecheck",
     "test": "pnpm --filter ai-powered-canvas test",
+    "test:e2e": "pnpm --filter ai-powered-canvas e2e",
     "storybook": "pnpm --filter ai-powered-canvas storybook",
     "build-storybook": "pnpm --filter ai-powered-canvas build-storybook"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "concurrently": "^9.0.0",
+    "wait-on": "^9.0.10"
   }
 }

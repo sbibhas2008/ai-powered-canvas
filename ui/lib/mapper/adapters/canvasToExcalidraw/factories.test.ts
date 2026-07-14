@@ -221,7 +221,7 @@ describe("createTextElement", () => {
 });
 
 describe("createBoundTextElement", () => {
-  it("centers text on the node", () => {
+  it("positions text at the node origin and vertically centers within the container", () => {
     const node = makeNode({
       position: { x: 100, y: 200 },
       size: { width: 200, height: 100 },
@@ -230,8 +230,8 @@ describe("createBoundTextElement", () => {
     const el = createBoundTextElement(node);
 
     expect(el.id).toBe("node-1-label");
-    expect(el.x).toBe(200); // 100 + 200/2
-    expect(el.y).toBe(250); // 200 + 100/2
+    expect(el.x).toBe(100);
+    expect(el.y).toBe(240); // 200 + (100 - 20) / 2
     expect(el.width).toBe(200);
     expect(asRaw(el).text).toBe("Box");
     expect(asRaw(el).containerId).toBe("node-1");

@@ -83,24 +83,35 @@ export function createShapeElement(
   node: Node,
   boundElements: BoundElementRef[],
 ): MutableExcalidrawElement {
+  const width = node.size?.width ?? DEFAULT_NODE_SIZE.width;
+  const height = node.size?.height ?? DEFAULT_NODE_SIZE.height;
+
   return {
     ...createExcalidrawBase(node),
     type: node.type,
     x: node.position.x,
     y: node.position.y,
-    width: node.size?.width ?? DEFAULT_NODE_SIZE.width,
-    height: node.size?.height ?? DEFAULT_NODE_SIZE.height,
+    width,
+    height,
     angle: 0,
     boundElements,
   } as MutableExcalidrawElement;
 }
 
 export function createBoundTextElement(node: Node): MutableExcalidrawElement {
+  const fontSize = node.style.fontSize ?? DEFAULT_BASE_STYLE.fontSize;
+
+  const width = node.size?.width ?? DEFAULT_NODE_SIZE.width;
+  const height = node.size?.height ?? DEFAULT_NODE_SIZE.height;
+
+  const x = node.position.x;
+  const y = node.position.y + (height - fontSize) / 2;
+
   return createTextElement({
     id: `${node.id}-label`,
-    x: node.position.x + (node.size?.width ?? DEFAULT_NODE_SIZE.width) / 2,
-    y: node.position.y + (node.size?.height ?? DEFAULT_NODE_SIZE.height) / 2,
-    width: node.size?.width ?? DEFAULT_NODE_SIZE.width,
+    x,
+    y,
+    width,
     text: node.label ?? "",
     style: node.style,
     renderMeta: node.renderMeta,
