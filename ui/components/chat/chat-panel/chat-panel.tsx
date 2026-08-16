@@ -81,7 +81,7 @@ export function ChatPanel() {
         <h2 className="font-semibold text-sm">AI Assistant</h2>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 overflow-hidden">
         <div ref={scrollRef} className="flex flex-col gap-4 p-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
