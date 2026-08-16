@@ -34,10 +34,12 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm dev &
-      - run: npx wait-on http://localhost:3000 http://localhost:1234 --timeout 30000
-      - run: pnpm test:e2e -- --reporter=github
+      # playwright is a devDependency of the ui package, so its binary is not
+      # on the root node_modules/.bin path — the command must be scoped.
+      - run: pnpm --filter ai-powered-canvas exec playwright install --with-deps chromium
+      # playwright.config.ts declares a webServer for both the ui (3000) and
+      # the collab server (1234), so it starts and stops them itself.
+      - run: pnpm test:e2e
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: ${{ !cancelled() }}
         with:
