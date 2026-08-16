@@ -38,6 +38,13 @@ describe("buildSystemPrompt", () => {
     expect(prompt).not.toContain("center of the source node");
   });
 
+  it("does not tell the model to pick a room", () => {
+    const prompt = buildSystemPrompt();
+
+    expect(prompt).not.toContain("Default room");
+    expect(prompt).not.toContain("default-room");
+  });
+
   it("mentions label width scales with font size", () => {
     const prompt = buildSystemPrompt();
 

@@ -4,13 +4,13 @@ import { render, screen } from "@testing-library/react";
 describe("ChatPanel", () => {
   it("renders chat panel", async () => {
     const { ChatPanel } = await import("./chat-panel");
-    render(<ChatPanel />);
+    render(<ChatPanel roomId="default-room" />);
     expect(screen.getByText("AI Assistant")).toBeInTheDocument();
   });
 
   it("shows empty state", async () => {
     const { ChatPanel } = await import("./chat-panel");
-    render(<ChatPanel />);
+    render(<ChatPanel roomId="default-room" />);
     expect(screen.getAllByText("No messages yet").length).toBeGreaterThan(0);
   });
 });

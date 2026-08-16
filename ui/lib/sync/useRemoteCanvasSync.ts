@@ -5,8 +5,7 @@ import * as Y from "yjs";
 import type { Node, Edge } from "@/lib/domain/types";
 import { renderSharedCanvas } from "@/lib/sync/sharedCanvas";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
-
-const LOCAL_ORIGIN = "local";
+import { LOCAL_ORIGIN } from "./origins";
 
 export interface UseRemoteCanvasSyncOptions {
   canvasApi: ExcalidrawImperativeAPI | null;

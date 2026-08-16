@@ -3,6 +3,7 @@ import { createAgent } from "langchain";
 import { drawShapeTool } from "./tools/drawShape";
 import { listElementsTool } from "./tools/listElements";
 import { connectNodesTool } from "./tools/connectNodes";
+import { agentContextSchema } from "./context";
 import {
   DEFAULT_BASE_STYLE,
   DEFAULT_NODE_SIZE,
@@ -49,7 +50,6 @@ You can draw shapes, connect them with arrows, and read existing elements.
 - Default size: ${nodeWidth}×${nodeHeight} pixels
 - Default stroke: solid, 2px, #1e1e1e
 - Default fill: transparent
-- Default room: "default-room" unless specified otherwise
 
 ## Shape Sizing & Content Padding
 
@@ -94,6 +94,7 @@ export function getAgent() {
       model,
       tools: [drawShapeTool, listElementsTool, connectNodesTool],
       systemPrompt: buildSystemPrompt(),
+      contextSchema: agentContextSchema,
     });
   }
   return cachedAgent;

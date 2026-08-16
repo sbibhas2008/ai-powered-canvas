@@ -2,6 +2,7 @@ import { RateLimitService } from "@/lib/agent/rateLimit";
 import { streamAgentResponse } from "@/lib/agent/stream";
 import { getIp, parseJsonBody } from "@/lib/api/request";
 import { badRequest, rateLimited, serverError } from "@/lib/api/errors";
+import { isValidRoomId } from "@/lib/sync/room";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { createUIMessageStreamResponse } from "ai";
 
@@ -31,6 +32,17 @@ function validateMessages(body: unknown): UIMessage[] | null {
   return messages;
 }
 
+/**
+ * The room is injected into the agent's context rather than accepted as a tool
+ * argument, so the model cannot redirect a write to another document. It is
+ * rejected rather than defaulted — silently falling back would write to the
+ * wrong canvas.
+ */
+function validateRoomId(body: unknown): string | null {
+  const { roomId } = body as { roomId?: unknown };
+  return isValidRoomId(roomId) ? roomId : null;
+}
+
 export async function POST(request: Request) {
   const startTime = Date.now();
   try {
@@ -47,9 +59,20 @@ export async function POST(request: Request) {
       return badRequest("messages array is required");
     }
 
-    console.log(`[api] valid request: ${messages.length} messages`);
+    const roomId = validateRoomId(body);
+    if (!roomId) {
+      console.log(`[api] validation failed: invalid roomId`);
+      return badRequest("a valid roomId is required");
+    }
 
-    const stream = await streamAgentResponse(toLangChainMessages(messages));
+    console.log(
+      `[api] valid request: ${messages.length} messages room=${roomId}`,
+    );
+
+    const stream = await streamAgentResponse(
+      toLangChainMessages(messages),
+      roomId,
+    );
     const duration = Date.now() - startTime;
     console.log(`[api] stream created in ${duration}ms`);
     return createUIMessageStreamResponse({ stream });

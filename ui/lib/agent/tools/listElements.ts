@@ -1,6 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { withCollabDoc } from "../headlessClient";
+import { requireRoomId, type AgentToolRuntime } from "../context";
 import type { Node, Edge } from "@/lib/domain/types";
 
 type NodeSummary = Pick<Node, "id" | "type" | "label" | "position" | "size">;
@@ -25,11 +26,8 @@ function formatEdge(e: EdgeSummary): string {
   return `  - ${e.id}: ${e.from} -> ${e.to}${label}\n`;
 }
 
-interface ListElementsArgs {
-  roomId: string;
-}
-
-async function listElements({ roomId }: ListElementsArgs) {
+async function listElements(_args: unknown, runtime: AgentToolRuntime) {
+  const roomId = requireRoomId(runtime);
   const startTime = Date.now();
   console.log(`[listElements] called: room=${roomId}`);
 
@@ -89,11 +87,7 @@ async function listElements({ roomId }: ListElementsArgs) {
   }
 }
 
-const listElementsSchema = z.object({
-  roomId: z
-    .string()
-    .describe("The room/document ID to list elements from (e.g. 'default-room')"),
-});
+const listElementsSchema = z.object({});
 
 export const listElementsTool = tool(listElements, {
   name: "list_elements",

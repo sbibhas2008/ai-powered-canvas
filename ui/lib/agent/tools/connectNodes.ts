@@ -1,23 +1,21 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { withCollabDoc } from "../headlessClient";
+import { withCollabWrite } from "../headlessClient";
+import { requireRoomId, type AgentToolRuntime } from "../context";
 import { createEdge } from "@/lib/domain/factories";
 
 interface ConnectNodesArgs {
-  roomId: string;
   fromNodeId: string;
   toNodeId: string;
   label?: string;
   strokeColor?: string;
 }
 
-async function connectNodes({
-  roomId,
-  fromNodeId,
-  toNodeId,
-  label,
-  strokeColor,
-}: ConnectNodesArgs) {
+async function connectNodes(
+  { fromNodeId, toNodeId, label, strokeColor }: ConnectNodesArgs,
+  runtime: AgentToolRuntime,
+) {
+  const roomId = requireRoomId(runtime);
   const startTime = Date.now();
   console.log(
     `[connectNodes] called: room=${roomId} from=${fromNodeId} to=${toNodeId}`,
@@ -31,7 +29,7 @@ async function connectNodes({
   });
 
   try {
-    await withCollabDoc(roomId, async (_doc, _nodesMap, edgesMap) => {
+    await withCollabWrite(roomId, ({ edgesMap }) => {
       edgesMap.set(edge.id, edge);
     });
 
@@ -51,9 +49,6 @@ async function connectNodes({
 }
 
 const connectNodesSchema = z.object({
-  roomId: z
-    .string()
-    .describe("The room/document ID (e.g. 'default-room')"),
   fromNodeId: z
     .string()
     .describe("The ID of the source node (use list_elements to find IDs)"),

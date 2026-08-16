@@ -1,11 +1,11 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { withCollabDoc } from "../headlessClient";
+import { withCollabWrite } from "../headlessClient";
+import { requireRoomId, type AgentToolRuntime } from "../context";
 import type { NodeType } from "@/lib/domain/types";
 import { createNode } from "@/lib/domain/factories";
 
 interface DrawShapeArgs {
-  roomId: string;
   shapeType: NodeType;
   x: number;
   y: number;
@@ -16,17 +16,20 @@ interface DrawShapeArgs {
   backgroundColor?: string;
 }
 
-async function drawShape({
-  roomId,
-  shapeType,
-  x,
-  y,
-  width,
-  height,
-  label,
-  strokeColor,
-  backgroundColor,
-}: DrawShapeArgs) {
+async function drawShape(
+  {
+    shapeType,
+    x,
+    y,
+    width,
+    height,
+    label,
+    strokeColor,
+    backgroundColor,
+  }: DrawShapeArgs,
+  runtime: AgentToolRuntime,
+) {
+  const roomId = requireRoomId(runtime);
   const startTime = Date.now();
   const labelPart = label ? ` "${label}"` : "";
   console.log(
@@ -45,7 +48,7 @@ async function drawShape({
   });
 
   try {
-    await withCollabDoc(roomId, async (_doc, nodesMap) => {
+    await withCollabWrite(roomId, ({ nodesMap }) => {
       nodesMap.set(node.id, node);
     });
 
@@ -62,9 +65,6 @@ async function drawShape({
 }
 
 const drawShapeSchema = z.object({
-  roomId: z
-    .string()
-    .describe("The room/document ID to draw on (e.g. 'default-room')"),
   shapeType: z
     .enum(["rectangle", "ellipse", "diamond", "text"])
     .describe("The type of shape to draw"),

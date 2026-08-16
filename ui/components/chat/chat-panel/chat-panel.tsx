@@ -6,7 +6,14 @@ import { Send, Square, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { useCallback, useRef, useEffect, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+  useState,
+  type KeyboardEvent,
+} from "react";
 
 function getMessageText(message: UIMessage): string {
   return message.parts
@@ -35,10 +42,18 @@ function AssistantMessage({ content }: { content: string }) {
   );
 }
 
-export function ChatPanel() {
-  const { messages, sendMessage, status, stop } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/agent" }),
-  });
+export interface ChatPanelProps {
+  /** Sent with every request so the agent writes to the canvas on screen. */
+  roomId: string;
+}
+
+export function ChatPanel({ roomId }: ChatPanelProps) {
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: "/api/agent", body: { roomId } }),
+    [roomId],
+  );
+
+  const { messages, sendMessage, status, stop } = useChat({ transport });
 
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);

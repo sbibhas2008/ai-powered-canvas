@@ -2,12 +2,15 @@ import type { BaseMessage } from "@langchain/core/messages";
 import { createUIMessageStream } from "ai";
 import { getAgent } from "./agent";
 
-export function streamAgentResponse(messages: BaseMessage[]) {
+export function streamAgentResponse(messages: BaseMessage[], roomId: string) {
   const agent = getAgent();
 
   return createUIMessageStream({
     execute: async ({ writer }) => {
-      const events = agent.streamEvents({ messages }, { version: "v2" });
+      const events = agent.streamEvents(
+        { messages },
+        { version: "v2", context: { roomId } },
+      );
 
       let textStarted = false;
 
