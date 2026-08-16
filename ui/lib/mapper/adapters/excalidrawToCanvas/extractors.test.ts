@@ -5,6 +5,7 @@ import {
   extractBaseStyle,
   extractRenderMeta,
   extractBoundLabel,
+  extractBoundLabelWidth,
 } from "./extractors";
 import { DEFAULT_BASE_STYLE } from "@/lib/domain/constants";
 import type { ExcalidrawRaw, TextByContainer } from "../../types";
@@ -155,5 +156,26 @@ describe("extractBoundLabel", () => {
     const labels: TextByContainer = new Map();
 
     expect(extractBoundLabel(labels, "any")).toBe("");
+  });
+});
+
+describe("extractBoundLabelWidth", () => {
+  it("returns width from bound text element", () => {
+    const labels: TextByContainer = new Map();
+    labels.set("edge-1", { width: 132 } as never);
+
+    expect(extractBoundLabelWidth(labels, "edge-1")).toBe(132);
+  });
+
+  it("returns undefined when ID not found", () => {
+    const labels: TextByContainer = new Map();
+
+    expect(extractBoundLabelWidth(labels, "missing-id")).toBeUndefined();
+  });
+
+  it("returns undefined when map is empty", () => {
+    const labels: TextByContainer = new Map();
+
+    expect(extractBoundLabelWidth(labels, "any")).toBeUndefined();
   });
 });

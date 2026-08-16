@@ -12,6 +12,7 @@ import {
   extractBaseStyle,
   extractRenderMeta,
   extractBoundLabel,
+  extractBoundLabelWidth,
 } from "./extractors";
 import { createEdge, createNode } from "./factories";
 
@@ -64,6 +65,7 @@ function excalidrawArrowToEdge(
     from: startBinding?.elementId ?? "",
     to: endBinding?.elementId ?? "",
     label: extractBoundLabel(boundTextLabels, el.id),
+    labelWidth: extractBoundLabelWidth(boundTextLabels, el.id),
     style: extractBaseStyle(raw),
     renderMeta: extractRenderMeta(raw),
     position: extractPosition(raw),

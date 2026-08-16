@@ -29,3 +29,14 @@ export const DEFAULT_RENDER_META: RenderMeta = {
     roundness: { type: 3 },
   },
 };
+
+/**
+ * Ratios for sizing arrow labels relative to fontSize.
+ * Keep in sync with DEFAULT_BASE_STYLE.fontSize — if font size changes,
+ * these ratios ensure labels scale proportionally.
+ */
+export const LABEL_SIZING = {
+  charWidthRatio: 0.4, // character width relative to fontSize
+  paddingRatio: 2, // padding above/below/beside text
+  minWidthRatio: 4, // minimum label width as multiple of fontSize
+} as const;

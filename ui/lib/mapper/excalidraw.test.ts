@@ -99,6 +99,24 @@ const rect2Label = fakeElement({
   lineHeight: 1.25,
 });
 
+const arrowLabel = fakeElement({
+  id: "arrow-label",
+  type: "text",
+  x: 400,
+  y: 150,
+  width: 132,
+  height: 20,
+  text: "Hello World",
+  originalText: "Hello World",
+  fontSize: 20,
+  fontFamily: 5,
+  textAlign: "center",
+  verticalAlign: "middle",
+  containerId: "arrow1",
+  autoResize: false,
+  lineHeight: 1.25,
+});
+
 const arrow1 = fakeElement({
   id: "arrow1",
   type: "arrow",
@@ -125,7 +143,7 @@ const arrow1 = fakeElement({
   startArrowhead: null,
   endArrowhead: "arrow",
   elbowed: false,
-  boundElements: [],
+  boundElements: [{ id: "arrow-label", type: "text" }],
 });
 
 const originalElements = [rect1, rect1Label, rect2, rect2Label, arrow1];
@@ -204,5 +222,14 @@ describe("Excalidraw roundtrip mapper", () => {
 
     expect(reconLabel.containerId).toBe("rect1");
     expect(reconLabel.text).toBe("Box A");
+  });
+
+  it("preserves arrow label width through roundtrip", () => {
+    const elementsWithLabel = [...originalElements, arrowLabel];
+    const domain = translateExcalidrawToCanvas(elementsWithLabel);
+    const edge = Object.values(domain.edges).find((e) => e.label === "Hello World");
+
+    expect(edge).toBeDefined();
+    expect(edge?.labelWidth).toBe(132);
   });
 });

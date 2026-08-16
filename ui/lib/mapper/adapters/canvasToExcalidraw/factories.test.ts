@@ -364,4 +364,51 @@ describe("createEdgeLabel", () => {
     expect(asRaw(el).text).toBe("yes");
     expect(asRaw(el).containerId).toBe("edge-1");
   });
+
+  it("scales label width with fontSize", () => {
+    const edge20 = makeEdge({ label: "test", style: { fontSize: 20 } });
+    const edge24 = makeEdge({ label: "test", style: { fontSize: 24 } });
+    const arrow = { x: 0, y: 0, points: [[0, 0], [100, 0]] as [number, number][] };
+
+    const w20 = createEdgeLabel(edge20, arrow).width;
+    const w24 = createEdgeLabel(edge24, arrow).width;
+
+    expect(w24).toBeGreaterThan(w20);
+  });
+
+  it("wider label produces wider width at same fontSize", () => {
+    const short = makeEdge({ label: "ok" });
+    const long = makeEdge({ label: "this is a much longer label" });
+    const arrow = { x: 0, y: 0, points: [[0, 0], [100, 0]] as [number, number][] };
+
+    const wShort = createEdgeLabel(short, arrow).width;
+    const wLong = createEdgeLabel(long, arrow).width;
+
+    expect(wLong).toBeGreaterThan(wShort);
+  });
+
+  it("uses DEFAULT_BASE_STYLE.fontSize when edge has no fontSize", () => {
+    const edge = makeEdge({ label: "test", style: {} });
+    const arrow = { x: 0, y: 0, points: [[0, 0], [100, 0]] as [number, number][] };
+    const el = createEdgeLabel(edge, arrow);
+
+    // At fontSize 20: max(80, 4*8 + 40) = max(80, 72) = 80
+    expect(el.width).toBe(80);
+  });
+
+  it("uses stored labelWidth when available", () => {
+    const edge = makeEdge({ label: "test", labelWidth: 132 });
+    const arrow = { x: 0, y: 0, points: [[0, 0], [100, 0]] as [number, number][] };
+    const el = createEdgeLabel(edge, arrow);
+
+    expect(el.width).toBe(132);
+  });
+
+  it("sets autoResize to false for cross-client consistency", () => {
+    const edge = makeEdge({ label: "test" });
+    const arrow = { x: 0, y: 0, points: [[0, 0], [100, 0]] as [number, number][] };
+    const el = createEdgeLabel(edge, arrow);
+
+    expect(asRaw(el).autoResize).toBe(false);
+  });
 });

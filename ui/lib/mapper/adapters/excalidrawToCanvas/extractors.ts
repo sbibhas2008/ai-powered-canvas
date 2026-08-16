@@ -42,3 +42,12 @@ export function extractBoundLabel(
   if (!boundText) return "";
   return ((boundText as unknown as ExcalidrawRaw).text as string) ?? "";
 }
+
+export function extractBoundLabelWidth(
+  boundTextLabels: TextByContainer,
+  id: string,
+): number | undefined {
+  const boundText = boundTextLabels.get(id);
+  if (!boundText) return undefined;
+  return (boundText as unknown as ExcalidrawRaw).width as number;
+}
