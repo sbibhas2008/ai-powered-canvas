@@ -57,10 +57,5 @@
     "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^3.0.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.17"
-    }
   }
 }
