@@ -1,20 +1,14 @@
 import { RateLimitService } from "@/lib/agent/rateLimit";
 import { streamAgentResponse } from "@/lib/agent/stream";
-import { getIp, parseJsonBody } from "@/lib/api/request";
-import { badRequest, rateLimited, serverError } from "@/lib/api/errors";
-import { isValidRoomId } from "@/lib/sync/room";
+import { getIp, parseRequestBody } from "@/lib/api/request";
+import { rateLimited, toErrorResponse } from "@/lib/api/errors";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { createUIMessageStreamResponse } from "ai";
+import { agentRequestSchema, type AgentRequestMessage } from "./schema";
 
 const rateLimiter = new RateLimitService({ cooldownMs: 5_000 });
 
-interface UIMessage {
-  role: "user" | "assistant";
-  parts?: Array<{ type: string; text?: string }>;
-  content?: string;
-}
-
-function toLangChainMessages(messages: UIMessage[]) {
+function toLangChainMessages(messages: AgentRequestMessage[]) {
   return messages.map((m) => {
     const text =
       m.parts
@@ -23,24 +17,6 @@ function toLangChainMessages(messages: UIMessage[]) {
         .join("") ?? m.content ?? "";
     return m.role === "user" ? new HumanMessage(text) : new AIMessage(text);
   });
-}
-
-function validateMessages(body: unknown): UIMessage[] | null {
-  const { messages } = body as { messages: UIMessage[] };
-  if (!messages || !Array.isArray(messages) || messages.length === 0)
-    return null;
-  return messages;
-}
-
-/**
- * The room is injected into the agent's context rather than accepted as a tool
- * argument, so the model cannot redirect a write to another document. It is
- * rejected rather than defaulted — silently falling back would write to the
- * wrong canvas.
- */
-function validateRoomId(body: unknown): string | null {
-  const { roomId } = body as { roomId?: unknown };
-  return isValidRoomId(roomId) ? roomId : null;
 }
 
 export async function POST(request: Request) {
@@ -52,18 +28,10 @@ export async function POST(request: Request) {
       return rateLimited();
     }
 
-    const body = await parseJsonBody(request);
-    const messages = validateMessages(body);
-    if (!messages) {
-      console.log(`[api] validation failed: invalid messages`);
-      return badRequest("messages array is required");
-    }
-
-    const roomId = validateRoomId(body);
-    if (!roomId) {
-      console.log(`[api] validation failed: invalid roomId`);
-      return badRequest("a valid roomId is required");
-    }
+    const { messages, roomId } = await parseRequestBody(
+      request,
+      agentRequestSchema,
+    );
 
     console.log(
       `[api] valid request: ${messages.length} messages room=${roomId}`,
@@ -77,8 +45,7 @@ export async function POST(request: Request) {
     console.log(`[api] stream created in ${duration}ms`);
     return createUIMessageStreamResponse({ stream });
   } catch (error) {
-    const duration = Date.now() - startTime;
-    console.error(`[api] error after ${duration}ms:`, error);
-    return serverError();
+    console.log(`[api] failed after ${Date.now() - startTime}ms`);
+    return toErrorResponse(error);
   }
 }
