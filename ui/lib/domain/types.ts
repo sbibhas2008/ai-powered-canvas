@@ -56,6 +56,23 @@ export interface Edge extends BaseElement {
   from: string; // source node ID
   to: string; // target node ID
   label?: string;
+  /**
+   * Measured label width in pixels.
+   *
+   * Why store this? Excalidraw's canvas-based `measureText` can produce
+   * different results across clients (font loading timing, devicePixelRatio).
+   * Without a canonical width, the same label renders with different padding
+   * on different clients.
+   *
+   * How it works:
+   * - Client 1 creates edge → Excalidraw measures text → width stored in Domain
+   * - Yjs syncs Domain (with labelWidth) to all clients
+   * - Client 2 receives canonical width → renders identically
+   *
+   * Text wrapping (line breaks) is still handled by the renderer via arrow bounds.
+   * This field only controls the display width of single-line labels.
+   */
+  labelWidth?: number;
   position?: Position;
   points?: [number, number][];
 }

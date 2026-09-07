@@ -6,8 +6,7 @@ import type { Node, Edge } from "@/lib/domain/types";
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import { deepEqual } from "@/utils/object";
 import { translateExcalidrawToCanvas } from "../mapper/adapters/excalidrawToCanvas";
-
-const LOCAL_ORIGIN = "local";
+import { LOCAL_ORIGIN } from "./origins";
 
 /**
  * Diff-and-patch a Y.Map against an incoming array of domain items.

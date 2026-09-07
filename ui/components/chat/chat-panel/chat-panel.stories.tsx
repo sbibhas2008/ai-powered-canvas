@@ -14,7 +14,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => (
+  args: {
+    roomId: "default-room",
+  },
+  render: (args) => (
     <div className="flex h-screen">
       <div className="flex-1 bg-background p-8">
         <h1 className="text-2xl font-bold">Canvas Area</h1>
@@ -22,7 +25,7 @@ export const Default: Story = {
           The chat panel is on the right side.
         </p>
       </div>
-      <ChatPanel />
+      <ChatPanel {...args} />
     </div>
   ),
 };

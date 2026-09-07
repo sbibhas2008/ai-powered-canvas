@@ -4,6 +4,7 @@ import {
   DEFAULT_BASE_STYLE,
   DEFAULT_NODE_SIZE,
   DEFAULT_RENDER_META,
+  LABEL_SIZING,
 } from "@/lib/domain/constants";
 import type { MutableExcalidrawElement } from "../../types";
 import type { ArrowGeometry, ArrowBinding, BoundElementRef } from "./types";
@@ -47,6 +48,7 @@ export function createTextElement({
   style,
   renderMeta,
   containerId,
+  autoResize = true,
 }: {
   id: string;
   x: number;
@@ -56,8 +58,10 @@ export function createTextElement({
   style: BaseElement["style"];
   renderMeta: RenderMeta | undefined;
   containerId: string | null;
+  autoResize?: boolean;
 }): MutableExcalidrawElement {
   const fontSize = style.fontSize ?? DEFAULT_BASE_STYLE.fontSize;
+
   return {
     ...createExcalidrawBase({ id, style, renderMeta }),
     type: "text",
@@ -71,7 +75,7 @@ export function createTextElement({
     fontFamily: 1,
     textAlign: "center",
     verticalAlign: "middle",
-    autoResize: true,
+    autoResize,
     containerId,
     originalText: text,
     lineHeight: 1.25,
@@ -83,24 +87,35 @@ export function createShapeElement(
   node: Node,
   boundElements: BoundElementRef[],
 ): MutableExcalidrawElement {
+  const width = node.size?.width ?? DEFAULT_NODE_SIZE.width;
+  const height = node.size?.height ?? DEFAULT_NODE_SIZE.height;
+
   return {
     ...createExcalidrawBase(node),
     type: node.type,
     x: node.position.x,
     y: node.position.y,
-    width: node.size?.width ?? DEFAULT_NODE_SIZE.width,
-    height: node.size?.height ?? DEFAULT_NODE_SIZE.height,
+    width,
+    height,
     angle: 0,
     boundElements,
   } as MutableExcalidrawElement;
 }
 
 export function createBoundTextElement(node: Node): MutableExcalidrawElement {
+  const fontSize = node.style.fontSize ?? DEFAULT_BASE_STYLE.fontSize;
+
+  const width = node.size?.width ?? DEFAULT_NODE_SIZE.width;
+  const height = node.size?.height ?? DEFAULT_NODE_SIZE.height;
+
+  const x = node.position.x;
+  const y = node.position.y + (height - fontSize) / 2;
+
   return createTextElement({
     id: `${node.id}-label`,
-    x: node.position.x + (node.size?.width ?? DEFAULT_NODE_SIZE.width) / 2,
-    y: node.position.y + (node.size?.height ?? DEFAULT_NODE_SIZE.height) / 2,
-    width: node.size?.width ?? DEFAULT_NODE_SIZE.width,
+    x,
+    y,
+    width,
     text: node.label ?? "",
     style: node.style,
     renderMeta: node.renderMeta,
@@ -157,15 +172,35 @@ export function createEdgeLabel(
   arrow: ArrowGeometry,
 ): MutableExcalidrawElement {
   const [dx, dy] = arrow.points[arrow.points.length - 1];
+  const fontSize = edge.style.fontSize ?? DEFAULT_BASE_STYLE.fontSize;
 
+  // Use stored labelWidth if available (synced from originating client).
+  // Otherwise compute from text content using LABEL_SIZING ratios.
+  const width =
+    edge.labelWidth ??
+    (() => {
+      const charWidth = fontSize * LABEL_SIZING.charWidthRatio;
+      const padding = fontSize * LABEL_SIZING.paddingRatio;
+      const textLen = (edge.label ?? "").length;
+      return Math.max(
+        fontSize * LABEL_SIZING.minWidthRatio,
+        textLen * charWidth + padding,
+      );
+    })();
+
+  // autoResize: false — Excalidraw must not override our width with its
+  // own measureText result, which can differ across clients (font loading,
+  // devicePixelRatio). The canonical width is stored in the Domain and
+  // synced via Yjs so all clients render identically.
   return createTextElement({
     id: `${edge.id}-label`,
     x: arrow.x + dx / 2,
     y: arrow.y + dy / 2,
-    width: 100,
+    width,
     text: edge.label ?? "",
     style: edge.style,
     renderMeta: edge.renderMeta,
     containerId: edge.id,
+    autoResize: false,
   });
 }

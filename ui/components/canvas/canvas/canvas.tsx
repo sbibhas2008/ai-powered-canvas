@@ -17,7 +17,7 @@ export function Canvas({ roomId }: CanvasProps) {
   const { handleLocalChange } = useCanvasSync({ roomId, canvasApi });
 
   return (
-    <div className="flex-1">
+    <div className="relative flex-1 h-full">
       <ExcalidrawCanvas
         excalidrawAPI={setCanvasApi}
         onChange={(elements) => {

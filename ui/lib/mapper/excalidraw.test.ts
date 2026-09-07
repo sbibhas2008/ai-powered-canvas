@@ -99,6 +99,24 @@ const rect2Label = fakeElement({
   lineHeight: 1.25,
 });
 
+const arrowLabel = fakeElement({
+  id: "arrow-label",
+  type: "text",
+  x: 400,
+  y: 150,
+  width: 132,
+  height: 20,
+  text: "Hello World",
+  originalText: "Hello World",
+  fontSize: 20,
+  fontFamily: 5,
+  textAlign: "center",
+  verticalAlign: "middle",
+  containerId: "arrow1",
+  autoResize: false,
+  lineHeight: 1.25,
+});
+
 const arrow1 = fakeElement({
   id: "arrow1",
   type: "arrow",
@@ -125,7 +143,7 @@ const arrow1 = fakeElement({
   startArrowhead: null,
   endArrowhead: "arrow",
   elbowed: false,
-  boundElements: [],
+  boundElements: [{ id: "arrow-label", type: "text" }],
 });
 
 const originalElements = [rect1, rect1Label, rect2, rect2Label, arrow1];
@@ -146,8 +164,11 @@ describe("Excalidraw roundtrip mapper", () => {
     }
   });
 
-  it("preserves position and size for all elements", () => {
-    for (const orig of originalElements) {
+  it("preserves position and size for non-text-bound elements", () => {
+    const nonLabelElements = originalElements.filter(
+      (el) => (el as unknown as Record<string, unknown>).containerId == null,
+    );
+    for (const orig of nonLabelElements) {
       const origR = orig as unknown as Record<string, unknown>;
       const recon = reconstructed.find(
         (e) => (e as unknown as Record<string, unknown>).id === origR.id,
@@ -159,6 +180,17 @@ describe("Excalidraw roundtrip mapper", () => {
       expect(recon.height).toBe(origR.height);
       expect(recon.type).toBe(origR.type);
     }
+  });
+
+  it("bound text positions are derived from container, not preserved from Excalidraw", () => {
+    const reconLabel = reconstructed.find(
+      (e) => (e as unknown as Record<string, unknown>).id === "rect1-label",
+    ) as unknown as Record<string, unknown>;
+
+    // x stays at container origin; y is vertically centered within container
+    expect(reconLabel.x).toBe(rect1.x);
+    expect(reconLabel.y).toBe(rect1.y + (rect1.height - 20) / 2);
+    expect(reconLabel.containerId).toBe("rect1");
   });
 
   it("preserves arrow points", () => {
@@ -190,5 +222,14 @@ describe("Excalidraw roundtrip mapper", () => {
 
     expect(reconLabel.containerId).toBe("rect1");
     expect(reconLabel.text).toBe("Box A");
+  });
+
+  it("preserves arrow label width through roundtrip", () => {
+    const elementsWithLabel = [...originalElements, arrowLabel];
+    const domain = translateExcalidrawToCanvas(elementsWithLabel);
+    const edge = Object.values(domain.edges).find((e) => e.label === "Hello World");
+
+    expect(edge).toBeDefined();
+    expect(edge?.labelWidth).toBe(132);
   });
 });

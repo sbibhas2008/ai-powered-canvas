@@ -8,7 +8,7 @@ export const DEFAULT_NODE_SIZE: Size = {
 /**
  * Universal styling defaults that any canvas (or AI) can understand.
  */
-export const DEFAULT_BASE_STYLE: BaseStyle = {
+export const DEFAULT_BASE_STYLE: Required<BaseStyle> = {
   backgroundColor: "transparent",
   strokeColor: "#1e1e1e",
   strokeWidth: 2,
@@ -29,3 +29,14 @@ export const DEFAULT_RENDER_META: RenderMeta = {
     roundness: { type: 3 },
   },
 };
+
+/**
+ * Ratios for sizing arrow labels relative to fontSize.
+ * Keep in sync with DEFAULT_BASE_STYLE.fontSize — if font size changes,
+ * these ratios ensure labels scale proportionally.
+ */
+export const LABEL_SIZING = {
+  charWidthRatio: 0.4, // character width relative to fontSize
+  paddingRatio: 2, // padding above/below/beside text
+  minWidthRatio: 4, // minimum label width as multiple of fontSize
+} as const;

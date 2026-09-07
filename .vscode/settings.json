@@ -2,5 +2,6 @@
   "cSpell.words": ["Collab", "Excalidraw"],
   "json.schemaDownload.trustedDomains": {
     "https://ui.shadcn.com/": true
-  }
+  },
+  "vitest.rootConfig": "./ui/vitest.config.ts"
 }
